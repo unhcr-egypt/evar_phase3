@@ -150,7 +150,7 @@ packages <- c(
 
   #"rJava", "XLConnect", ## Read and write excel files
   "readxl", ## Read Excel files
-  "xlsx",
+  #"xlsx",
 
   #"httr", "rjson","jsonlite", ## get data from API
   #"XML", "xml2", ## Manipulation of xml
@@ -218,7 +218,7 @@ library("scales")
 #library("gWidgetsRGtk2")
 library("readxl")
 library("plyr")
-library("xlsx")
+#library("xlsx")
 #library("FactoMineR")
 
 library("corrplot")
