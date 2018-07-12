@@ -12,6 +12,7 @@ library(koboloadeR)
 ### Load the data
 cat("\n\n Loading data. It is assumed that the cleaning, weighting & re-encoding has been done previously \n")
 household <- read.csv("data/data2.csv", encoding = "UTF-8", na.strings = "NA")
+household_member <- read.csv("data/household_member2.csv", encoding = "UTF-8", na.strings = "NA")
 
 ###Form##########################################
 ## Load form
@@ -75,7 +76,7 @@ write.csv(chapters, "data/chapters.csv", row.names = FALSE, na = "")
 
 for (i in 1:nrow(chapters) )
 {
-  # i <-4
+  # i <-1
   chaptersname <- as.character(chapters[ i , 1])
   cat(paste(i, " - Render chapter for ",as.character(chapters[ i , 1]),"\n" ))
   chapter.name <- paste("code/",i,"-", chaptersname, "-chapter.Rmd", sep = "")
@@ -89,6 +90,7 @@ for (i in 1:nrow(chapters) )
   cat(paste("title: \"Data Crunching Report: ",chaptersname , "- Draft not for distribution. \"", sep = ""), file = chapter.name , sep = "\n", append = TRUE)
   cat("author: \"Generated with [Koboloader](https://github.com/unhcr/koboloadeR) \"", file = chapter.name , sep = "\n", append = TRUE)
   cat("date: \" `r format(Sys.Date(),  '%d %B %Y')`\"", file = chapter.name , sep = "\n", append = TRUE)
+  cat("always_allow_html: yes", file = chapter.name , sep = "\n", append = TRUE)
   cat("output:",file = chapter.name , sep = "\n", append = TRUE)
   cat("  word_document:", file = chapter.name , sep = "\n", append = TRUE)
   cat("    fig_caption: yes", file = chapter.name , sep = "\n", append = TRUE)
@@ -116,10 +118,12 @@ for (i in 1:nrow(chapters) )
 
   ## TO DO: Use config file to load the different frame
   cat("household <- read.csv(paste0(mainDirroot,\"/data/data2.csv\"), encoding = \"UTF-8\", na.strings = \"NA\")", file = chapter.name , sep = "\n", append = TRUE)
+  cat("household_member <- read.csv(paste0(mainDirroot,\"/data/household_member2.csv\"), encoding = \"UTF-8\", na.strings = \"NA\")", file = chapter.name , sep = "\n", append = TRUE)
 
   cat("\n", file = chapter.name , sep = "\n", append = TRUE)
   cat("## label Variables", file = chapter.name , sep = "\n", append = TRUE)
   cat("household <- kobo_label(household , dico)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("household_member <- kobo_label(household_member , dico)", file = chapter.name , sep = "\n", append = TRUE)
 
   #### Convert to ordinal variable
 
@@ -151,6 +155,7 @@ for (i in 1:nrow(chapters) )
 
   ## If no weight, the weighted object is unweigthted
   cat("household.survey <- svydesign(ids = ~ 1 ,  data = household )", file = chapter.name , sep = "\n", append = TRUE)
+  cat("household_member.survey <- svydesign(ids = ~ 1 ,  data = household_member )", file = chapter.name , sep = "\n", append = TRUE)
 
   cat(paste0("\n```\n", sep = '\n'), file = chapter.name, append = TRUE)
 
@@ -188,7 +193,7 @@ for (i in 1:nrow(chapters) )
 
   for (j in 1:nrow(chapterquestions))
   {
-    # j <-16
+    # j <-1
     ## Now getting level for each questions
     questions.name <- as.character(chapterquestions[ j , c("fullname")])
     questions.shortname <- as.character(chapterquestions[ j , c("name")])
@@ -219,7 +224,6 @@ for (i in 1:nrow(chapters) )
       ## compute frequency to see if it's not empty
       frequ <- as.data.frame(table( get(paste0(questions.frame))[[questions.name]]))
 
-
       figheight <- as.integer(nrow(frequ))
       if (figheight == 0) { figheight <- 1} else {figheight <- figheight/1.2}
 
@@ -232,10 +236,16 @@ for (i in 1:nrow(chapters) )
       #cat(paste0("if (nrow(frequ)==0){ cat(\"No response for this question\") } else{"),file = chapter.name ,sep = "\n", append = TRUE)
 
       ## Check that there are responses to be displayed ####
-      if (nrow(frequ) %in% c("0","1")) {
+      if (nrow(frequ) %in% c("0","1") ) {
         cat(paste0("cat(\"No responses recorded for this question...\")"),file = chapter.name , sep = "\n", append = TRUE)
         cat("No responses recorded for this question...\n")
-      } else{
+
+      #  names(frequ)[2] <- "ccheck"
+      #  try <- frequ$ccheck
+    #  } else if (sum(try) == 0) {
+     #   cat(paste0("cat(\"No responses recorded for this question...\")"),file = chapter.name , sep = "\n", append = TRUE)
+    #    cat("No responses recorded for this question...\n")
+       }      else{
         cat(paste0("## display table"),file = chapter.name ,sep = "\n", append = TRUE)
         cat(paste0("## Reorder factor"),file = chapter.name ,sep = "\n", append = TRUE)
 
@@ -258,7 +268,7 @@ for (i in 1:nrow(chapters) )
         cat(paste0("frequ1 <- as.data.frame(prop.table(table(", questions.variable,", useNA=\"ifany\")))"),file = chapter.name ,sep = "\n", append = TRUE)
         cat(paste0("frequ1 <- frequ1[!(is.na(frequ1$Var1)), ]"),file = chapter.name ,sep = "\n", append = TRUE)
         cat(paste0("frequ1 <- frequ1[!(frequ1$Var1==\"NA\"), ]"),file = chapter.name ,sep = "\n", append = TRUE)
-        cat(paste0("percentreponse <- paste0(round(sum(frequ1$Freq)*100,digits=1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
+        cat(paste0("percentreponse <- paste0(round(sum(frequ1$Freq)*100,digits = 1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
         cat(paste0("## Frequency table without NA"),file = chapter.name ,sep = "\n", append = TRUE)
         cat(paste0("frequ2 <- as.data.frame(prop.table(table(", questions.variable,",useNA = \"no\")))"),file = chapter.name ,sep = "\n", append = TRUE)
         cat(paste0("## Frequency table with weight"),file = chapter.name ,sep = "\n", append = TRUE)
@@ -268,7 +278,7 @@ for (i in 1:nrow(chapters) )
         cat(paste0("## Reorder factor"),file = chapter.name ,sep = "\n", append = TRUE)
         #    cat(paste0("frequ2[ ,1] = factor(frequ2[ ,1],levels(frequ2[ ,1])[order(frequ2$Freq, decreasing = FALSE)])"),file = chapter.name ,sep = "\n", append = TRUE)
         #    cat(paste0("frequ2 <- frequ2[ order(frequ2[ , 1]) ,  ]"),file = chapter.name ,sep = "\n", append = TRUE)
-        #    cat(paste0("frequ2[ ,3] <- paste0(round(frequ2[ ,2]*100,digits=1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
+        #    cat(paste0("frequ2[ ,3] <- paste0(round(frequ2[ ,2]*100,digits = 1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
         #    cat(paste0("names(frequ2)[3] <- \"freqper2\""),file = chapter.name ,sep = "\n", append = TRUE)
 
 
@@ -280,7 +290,7 @@ for (i in 1:nrow(chapters) )
           cat(paste0("frequ3 <- frequ3[ order(frequ3[ , 1]) ,  ]"),file = chapter.name ,sep = "\n", append = TRUE)
         }
 
-        cat(paste0("frequ3[ ,5] <- paste0(round(frequ3[ ,3]*100,digits=1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
+        cat(paste0("frequ3[ ,5] <- paste0(round(frequ3[ ,3]*100,digits = 1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
         cat(paste0("names(frequ3)[5] <- \"freqper2\""),file = chapter.name ,sep = "\n", append = TRUE)
 
         cat(paste0("\n"),file = chapter.name ,sep = "\n", append = TRUE)
@@ -321,7 +331,7 @@ for (i in 1:nrow(chapters) )
 
         for (h in 1:nrow(disaggregation))
         {
-          #h <-1
+          #h <-3
           ## Now getting level for each questions
           disag.name <- as.character(disaggregation[ h , c("fullname")])
           disag.shortname <- as.character(disaggregation[ h , c("name")])
@@ -454,7 +464,7 @@ for (i in 1:nrow(chapters) )
                 cat(paste0("crosssfrequ.weight <-as.data.frame(prop.table(svytable(~", questions.name ," + ", disag.name,", design =",questions.frame ,".survey  ), margin = 2))"),file = chapter.name ,sep = "\n", append = TRUE)
                 cat(paste0("names(crosssfrequ.weight)[1] <- \"quest\""),file = chapter.name ,sep = "\n", append = TRUE)
                 cat(paste0("names(crosssfrequ.weight)[2] <- \"disag\""),file = chapter.name ,sep = "\n", append = TRUE)
-                cat(paste0("crosssfrequ.weight$Freq2 <- paste0(round(crosssfrequ.weight$Freq*100,digits=1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
+                cat(paste0("crosssfrequ.weight$Freq2 <- paste0(round(crosssfrequ.weight$Freq*100,digits = 1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
                 cat(paste0("list.ordinal <- as.character(unique(dico[ dico$listname == \"", disag.listname,"\" & dico$type == \"select_one_d\", c(\"labelchoice\") ]))"),file = chapter.name ,sep = "\n", append = TRUE)
                 cat(paste0("levels(crosssfrequ.weight$disag) <- list.ordinal"),file = chapter.name ,sep = "\n", append = TRUE)
 
@@ -462,7 +472,7 @@ for (i in 1:nrow(chapters) )
                 cat(paste0("crosssfrequ.weight <-as.data.frame(prop.table(svytable(~", questions.name ," + ", disag.name,", design =",questions.frame ,".survey  ), margin = 2))"),file = chapter.name ,sep = "\n", append = TRUE)
                 cat(paste0("names(crosssfrequ.weight)[1] <- \"quest\""),file = chapter.name ,sep = "\n", append = TRUE)
                 cat(paste0("names(crosssfrequ.weight)[2] <- \"disag\""),file = chapter.name ,sep = "\n", append = TRUE)
-                cat(paste0("crosssfrequ.weight$Freq2 <- paste0(round(crosssfrequ.weight$Freq*100,digits=1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
+                cat(paste0("crosssfrequ.weight$Freq2 <- paste0(round(crosssfrequ.weight$Freq*100,digits = 1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
                 cat(paste0("## Reorder factor"),file = chapter.name ,sep = "\n", append = TRUE)
                 cat(paste0("cross <- dcast(crosssfrequ.weight, disag  ~ quest, value.var = \"Freq\")"),file = chapter.name ,sep = "\n", append = TRUE)
                 cat(paste0("cross <- cross[ order(cross[ ,2], decreasing = FALSE) ,  ]"),file = chapter.name ,sep = "\n", append = TRUE)
@@ -472,7 +482,7 @@ for (i in 1:nrow(chapters) )
 
 
               cat(paste0("## and now the graph"),file = chapter.name ,sep = "\n", append = TRUE)
-              cat(paste0("ggplot(crosssfrequ.weight, aes(fill=crosssfrequ.weight$quest, y=crosssfrequ.weight$Freq, x=crosssfrequ.weight$disag)) +"),file = chapter.name ,sep = "\n", append = TRUE)
+              cat(paste0("ggplot(crosssfrequ.weight, aes(fill=crosssfrequ.weight$quest, y=crosssfrequ.weight$Freq, x = crosssfrequ.weight$disag)) +"),file = chapter.name ,sep = "\n", append = TRUE)
               cat(paste0("geom_bar(colour=\"white\", stat =\"identity\", width=.8, aes(fill = quest), position = position_stack(reverse = TRUE)) +"),file = chapter.name ,sep = "\n", append = TRUE)
               #cat(paste0("geom_label_repel(aes(label = Freq2), fill = \"#2a87c8\", color = 'white') +"),file = chapter.name ,sep = "\n", append = TRUE)
               cat(paste0("ylab(\"Frequency\") +"),file = chapter.name ,sep = "\n", append = TRUE)
@@ -914,7 +924,7 @@ for (i in 1:nrow(chapters) )
           cat(paste0("data.selectmultilist$id <- rownames(data.selectmultilist)"),file = chapter.name ,sep = "\n", append = TRUE)
           cat(paste0("totalanswer <- nrow(data.selectmultilist)"),file = chapter.name ,sep = "\n", append = TRUE)
           cat(paste0("data.selectmultilist <- data.selectmultilist[ data.selectmultilist[ ,1]!=\"Not replied\", ]"),file = chapter.name ,sep = "\n", append = TRUE)
-          cat(paste0("percentreponse <- paste0(round((nrow(data.selectmultilist)/totalanswer)*100,digits=1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
+          cat(paste0("percentreponse <- paste0(round((nrow(data.selectmultilist)/totalanswer)*100,digits = 1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
           cat(paste0("meltdata <- melt(data.selectmultilist,id=\"id\")"),file = chapter.name ,sep = "\n", append = TRUE)
           cat(paste0("castdata <- as.data.frame(table(meltdata[c(\"value\")]))"),file = chapter.name ,sep = "\n", append = TRUE)
           cat(paste0("castdata$freqper <- castdata$Freq/nrow(data.selectmultilist)"),file = chapter.name ,sep = "\n", append = TRUE)
@@ -924,12 +934,12 @@ for (i in 1:nrow(chapters) )
 
           cat(paste0("## display table"),file = chapter.name ,sep = "\n", append = TRUE)
           cat(paste0("names(frequ)[1] <- \"", questions.shortname,"\""),file = chapter.name ,sep = "\n", append = TRUE)
-          cat(paste0("frequ[ ,3] <- paste0(round(frequ[ ,3]*100,digits=1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
+          cat(paste0("frequ[ ,3] <- paste0(round(frequ[ ,3]*100,digits = 1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
 
           cat(paste0("kable(frequ, caption=\"__Table__:", questions.label,"\") %>% kable_styling ( position = \"center\")"),file = chapter.name ,sep = "\n", append = TRUE)
 
           cat(paste0("frequ1 <- castdata[castdata$Var1!=\"\", ]"),file = chapter.name ,sep = "\n", append = TRUE)
-          cat(paste0("frequ1[ ,4] <- paste0(round(frequ1[ ,3]*100,digits=1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
+          cat(paste0("frequ1[ ,4] <- paste0(round(frequ1[ ,3]*100,digits = 1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
           cat(paste0("names(frequ1)[4] <- \"freqper2\""),file = chapter.name ,sep = "\n", append = TRUE)
 
           cat(paste0("\n"),file = chapter.name ,sep = "\n", append = TRUE)
@@ -1022,7 +1032,7 @@ chapters <- read.csv(paste(mainDir,"/data/chapters.csv",sep = ""), encoding = "U
 ### Render now all reports
 cat(" Render now reports... \n")
 
-for (i in 1:nrow(chapters)) {
+for (i in 2:nrow(chapters)) {
   chaptersname <- as.character(chapters[ i , 1])
   cat(paste(i, " - Render word output report for ",chaptersname))
   render(paste0("code/",i,"-", chaptersname, "-chapter.Rmd", sep = ""))
