@@ -558,9 +558,50 @@ household_member$household.household_member.household_member_more_details.nation
 #table(household_member$household.household_member.household_member_more_details.nationality, useNA = "ifany")
 
 
+
+
+## Remove columns from dataframe where ALL values are NA #########################
+household <- household[,colSums(is.na(household)) < nrow(household)]
+household_member <- household_member[,colSums(is.na(household_member)) < nrow(household_member)]
+
+
+## Reorder correctly the variable in the frame as per the form ###############
+dico$ordervariable <- row.names(dico)
+household.variable <- as.data.frame(names(household))
+names(household.variable)[1] <- "fullname"
+household.variable$idvar <- row.names(household.variable)
+dico.household <- join(x = dico, y = household.variable, by = "fullname", type = "left")
+dico.household <- as.data.frame(dico.household[!(is.na(dico.household$idvar)), c("fullname")])
+names(dico.household)[1] <- "varorder"
+dico.household$varorder <- as.character(dico.household$varorder)
+household.dico <- join(x = household.variable, y = dico, by = "fullname", type  = "left")
+household.dico <- as.data.frame(household.dico[is.na(household.dico$ordervariable), c("fullname")])
+names(household.dico)[1] <- "varorder"
+household.dico$varorder <- as.character(household.dico$varorder)
+variablelist <- rbind(dico.household , household.dico)
+variablelist <- as.character(as.factor(variablelist$varorder))
+household <- household[ , variablelist ]
+
+
+household_member.variable <- as.data.frame(names(household_member))
+names(household_member.variable)[1] <- "fullname"
+household_member.variable$idvar <- row.names(household_member.variable)
+dico.household_member <- join(x = dico, y = household_member.variable, by = "fullname", type = "left")
+dico.household_member <- as.data.frame(dico.household_member[!(is.na(dico.household_member$idvar)), c("fullname")])
+names(dico.household_member)[1] <- "varorder"
+dico.household_member$varorder <- as.character(dico.household_member$varorder)
+household_member.dico <- join(x = household_member.variable, y = dico, by = "fullname", type  = "left")
+household_member.dico <- as.data.frame(household_member.dico[is.na(household_member.dico$ordervariable), c("fullname")])
+names(household_member.dico)[1] <- "varorder"
+household_member.dico$varorder <- as.character(household_member.dico$varorder)
+variablelist <- rbind(dico.household_member , household_member.dico)
+variablelist <- as.character(as.factor(variablelist$varorder))
+household_member <- household_member[ , variablelist ]
+
+
 ### mergin case ID
-View(household_member[ ,c("household.household_member.household_member_details.case_number_default",
-"household.household_member.household_member_more_details.case_number")])
+#View(household_member[ ,c("household.household_member.household_member_details.case_number_default",
+#                          "household.household_member.household_member_more_details.case_number")])
 
 ## Convert o character before pasting together
 household_member$household.household_member.household_member_details.case_number_default <- as.character(household_member$household.household_member.household_member_details.case_number_default)
@@ -572,10 +613,55 @@ household_member$household.household_member.household_member_more_details.case_n
                                                                                                 ifelse(is.na(household_member$household.household_member.household_member_more_details.case_number),
                                                                                                        paste(""), household_member$household.household_member.household_member_more_details.case_number),
                                                                                                 sep = "")
-## Verify uniqueness of ID
+
+
+table(household_member$household.household_member.household_member_details.relation_to_head_of_HH)
+
+
+## Verify uniqueness of ID and create a mapping table between proGres and survey ID #########
 nrow(household_member)
 nrow(as.data.frame(unique(household_member$meta_instance_id)))
-nrow(as.data.frame(unique(paste0(household_member$household.household_member.household_member_more_details.case_number,household_member$meta_instance_id))))
+checking.record <- as.data.frame(unique(household_member[ ,c("household.household_member.household_member_more_details.case_number", "meta_instance_id")]))
+
+checking.record$uniqueid <- paste0(checking.record$household.household_member.household_member_more_details.case_number, checking.record$meta_instance_id)
+
+checking.record$dup.progres <- "No"
+checking.record$dup.progres[duplicated(checking.record$household.household_member.household_member_more_details.case_number ) == TRUE] <- "Yes"
+table(checking.record$dup.progres)
+
+checking.record$dup.instance <- "No"
+checking.record$dup.instance[duplicated(checking.record$meta_instance_id  ) == TRUE] <- "Yes"
+table(checking.record$dup.instance )
+
+checking.record$has.progres <- "Yes"
+checking.record$has.progres[checking.record$household.household_member.household_member_more_details.case_number == ""] <- "No"
+table(checking.record$has.progres )
+
+checking.record <- checking.record[checking.record$has.progres == "Yes", c("household.household_member.household_member_more_details.case_number", "meta_instance_id")]
+checking.record$dup.progres <- "No"
+checking.record$dup.progres[duplicated(checking.record$household.household_member.household_member_more_details.case_number ) == TRUE] <- "Yes"
+table(checking.record$dup.progres)
+
+checking.record$dup.instance <- "No"
+checking.record$dup.instance[duplicated(checking.record$meta_instance_id  ) == TRUE] <- "Yes"
+table(checking.record$dup.instance )
+
+instance.dup <- as.character(checking.record[checking.record$dup.instance == "Yes", c("meta_instance_id")])
+checking.record2 <- checking.record[ checking.record$meta_instance_id %in% instance.dup, ]
+checking.record3 <- checking.record[ !(checking.record$meta_instance_id %in% instance.dup), ]
+
+total.case <- nrow(checking.record2) + nrow(checking.record3)
+
+## So we have both household with one case and household with multiple cases
+## We need to rebuild all the information at the case level so that every household record correspond to one case
+
+# The rule will be the following:
+## select all individual variable from PA
+## recompute case size
+## dummy variable for categoric variable aggregated per progres case id
+## average value per case id case size for each case
+### If categoric variable from household - then same
+### If numeric variable, average value for household size multiplied by case size
 
 
 

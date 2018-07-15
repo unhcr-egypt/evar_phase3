@@ -4,9 +4,8 @@ library(car)
 
 
 ind <- read_csv("data/fromDB/Rpt_ActiveIndividuals.csv")
-names(ind)
-str(ind)
-
+#names(ind)
+#str(ind)
 ind.pa <- ind[ ind$Relationship == "PA", ]
 
 table(ind.pa$CurrentSize, useNA = "ifany")
@@ -15,21 +14,22 @@ prop.table(table(ind.pa$CurrentSize, useNA = "ifany"))
 freq.CurrentSize <- cbind(as.data.frame(prop.table(table(ind.pa$CurrentSize, useNA = "ifany"))),
                   as.data.frame(table(ind.pa$CurrentSize, useNA = "ifany")))
 
-ind.pa$Case.size <- recode(ind.pa$CurrentSize,"'0'='Case.size.1';
-                                 '1'='Case.size.1';
-                                 '2'='Case.size.2.to.4';
-                                 '3'='Case.size.2.to.4';
-                                 '4'='Case.size.2.to.4';
-                                 '5'='Case.size.5.and.more';
-                                 '6'='Case.size.5.and.more';
-                                 '7'='Case.size.5.and.more';
-                                 '8'='Case.size.5.and.more';
-                                 '9'='Case.size.5.and.more';
-                                 '10'='Case.size.5.and.more';
-                                 '11'='Case.size.5.and.more';
-                                 '12'='Case.size.5.and.more';
-                                 '13'='Case.size.5.and.more';
-                                 '14'='Case.size.5.and.more'")
+ind.pa$Case.size <= ""
+ind.pa$Case.size[ind.pa$CurrentSize == 0] <- "Case.size.1"
+ind.pa$Case.size[ind.pa$CurrentSize == 1] <- "Case.size.1"
+ind.pa$Case.size[ind.pa$CurrentSize == 2] <- "Case.size.2.to.4"
+ind.pa$Case.size[ind.pa$CurrentSize == 3] <- "Case.size.2.to.4"
+ind.pa$Case.size[ind.pa$CurrentSize == 4] <- "Case.size.2.to.4"
+ind.pa$Case.size[ind.pa$CurrentSize == 5] <- "Case.size.5.and.more"
+ind.pa$Case.size[ind.pa$CurrentSize == 6] <- "Case.size.5.and.more"
+ind.pa$Case.size[ind.pa$CurrentSize == 7] <- "Case.size.5.and.more"
+ind.pa$Case.size[ind.pa$CurrentSize == 8] <- "Case.size.5.and.more"
+ind.pa$Case.size[ind.pa$CurrentSize == 9] <- "Case.size.5.and.more"
+ind.pa$Case.size[ind.pa$CurrentSize == 10] <- "Case.size.5.and.more"
+ind.pa$Case.size[ind.pa$CurrentSize == 11] <- "Case.size.5.and.more"
+ind.pa$Case.size[ind.pa$CurrentSize == 12] <- "Case.size.5.and.more"
+ind.pa$Case.size[ind.pa$CurrentSize == 13] <- "Case.size.5.and.more"
+ind.pa$Case.size[ind.pa$CurrentSize == 14] <- "Case.size.5.and.more"
 
 prop.table(table(ind.pa$Case.size, useNA = "ifany"))
 
@@ -57,67 +57,70 @@ prop.table(table(ind.pa$NationalityCode, useNA = "ifany"))
 ## Other nationalities (Arabic-speaking)
 ## Other nationalities (non-Arabic-speaking)
 write.csv(levels(as.factor(ind.pa$NationalityCode)), "out/nationality.csv")
-ind.pa$NationalityCat <- recode(ind.pa$NationalityCode,"'AFG'='NOARAB';
-                                'ALG'='ARAB';
-                                'ANG'='NOARAB';
-                                'AZE'='NOARAB';
-                                'BDI'='NOARAB';
-                                'BEN'='NOARAB';
-                                'BGD'='NOARAB';
-                                'BKF'='NOARAB';
-                                'CAR'='NOARAB';
-                                'CHD'='ARAB';
-                                'CHI'='NOARAB';
-                                'CMR'='NOARAB';
-                                'COB'='NOARAB';
-                                'COD'='NOARAB';
-                                'COI'='NOARAB';
-                                'DJB'='ARAB';
-                                'ERT'='NOARAB';
-                                'ETH'='NOARAB';
-                                'GAM'='NOARAB';
-                                'GHA'='NOARAB';
-                                'GNB'='NOARAB';
-                                'GUI'='NOARAB';
-                                'ICO'='NOARAB';
-                                'IND'='NOARAB';
-                                'INS'='NOARAB';
-                                'IRQ'='ARAB';
-                                'JOR'='ARAB';
-                                'KAZ'='NOARAB';
-                                'KEN'='NOARAB';
-                                'KOR'='NOARAB';
-                                'LBR'='NOARAB';
-                                'LBY'='ARAB';
-                                'LKA'='NOARAB';
-                                'MAU'='ARAB';
-                                'MLI'='NOARAB';
-                                'MOR'='ARAB';
-                                'MYA'='NOARAB';
-                                'NGR'='NOARAB';
-                                'NIG'='NOARAB';
-                                'PAK'='NOARAB';
-                                'RUS'='NOARAB';
-                                'SAU'='ARAB';
-                                'SLE'='NOARAB';
-                                'SOM'='ARAB';
-                                'SSD'='NOARAB';
-                                'SUD'='ARAB';
-                                'SUR'='NOARAB';
-                                'SYR'='SYR';
-                                'TAN'='NOARAB';
-                                'TJK'='NOARAB';
-                                'TKM'='NOARAB';
-                                'TOG'='NOARAB';
-                                'TUN'='ARAB';
-                                'TUR'='NOARAB';
-                                'U'='NOARAB';
-                                'UGA'='NOARAB';
-                                'UZB'='NOARAB';
-                                'YEM'='ARAB';
-                                'ZIM'='NOARAB';
-                                'ZZZ'='NOARAB';
-                                '-'='NOARAB'")
+ind.pa$NationalityCat <- ""
+ind.pa$NationalityCat[ind.pa$NationalityCode == "SYR"] <- "SYR"
+
+ind.pa$NationalityCat[ind.pa$NationalityCode == "SOM"] <- "ARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "TUN"] <- "ARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "YEM"] <- "ARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "SUD"] <- "ARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "SAU"] <- "ARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "LBY"] <- "ARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "MAU"] <- "ARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "MOR"] <- "ARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "IRQ"] <- "ARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "JOR"] <- "ARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "DJB"] <- "ARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "CHD"] <- "ARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "ALG"] <- "ARAB"
+
+ind.pa$NationalityCat[ind.pa$NationalityCode == "AFG"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "ANG"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "AZE"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "BDI"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "BEN"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "BGD"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "BKF"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "CAR"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "CHI"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "CMR"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "COB"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "COD"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "COI"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "ERT"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "ETH"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "GAM"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "GHA"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "GNB"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "GUI"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "ICO"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "IND"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "INS"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "KAZ"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "KEN"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "KOR"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "LBR"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "LKA"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "MLI"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "MYA"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "NGR"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "NIG"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "PAK"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "RUS"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "SLE"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "SSD"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "SUR"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "TAN"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "TJK"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "TKM"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "TOG"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "TUR"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "UGA"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "UZB"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "ZIM"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "ZZZ"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "U"] <- "NOARAB"
+ind.pa$NationalityCat[ind.pa$NationalityCode == "-"] <- "NOARAB"
 
 
 prop.table(table(ind.pa$NationalityCat, useNA = "ifany"))
@@ -155,7 +158,8 @@ ind.pa$strata3[ind.pa$strata2 == "F-Case.size.2.to.4-ARAB"] <- "F-Case.size.2.to
 freq.strata3 <- cbind(as.data.frame(prop.table(table(ind.pa$strata3 , useNA = "ifany"))),
                       as.data.frame(table(ind.pa$strata3 , useNA = "ifany")))
 
-
+### Save
+write.csv(ind.pa,"data/indpa.csv", row.names = FALSE, na = "")
 
 ### Now including location....
 
