@@ -460,17 +460,17 @@ rm(member.income, source_of_income_work_2)
 
 
 ## Clean variable if any ##########################################################
-cat("\n\n\n Clean variable if any \n\n\n\n")
+#cat("\n\n\n Clean variable if any \n\n\n\n")
 #household <- kobo_clean(household, dico)
 
 ## Build anonymised version of the frame ##########################################
-cat("\n\n\n Anonymise Household \n\n\n\n")
+#cat("\n\n\n Anonymise Household \n\n\n\n")
 #kobo_anonymise(household, dico)
 
 ## Save preliminary version before encoding or adding indicators ##################
-cat("\n\nWrite backup before encoding or indicators calculation..\n")
-write.csv(household,"data/household.csv", row.names = FALSE, na = "")
-write.csv(household_member,"data/household_member.csv", row.names = FALSE, na = "")
+#cat("\n\nWrite backup before encoding or indicators calculation..\n")
+#write.csv(household,"data/household.csv", row.names = FALSE, na = "")
+#write.csv(household_member,"data/household_member.csv", row.names = FALSE, na = "")
 
 ## Compute indicators if defined ##################################################
 #source("code/2-create-indicators.R")
@@ -535,7 +535,47 @@ household$meb.expenditure.nfi[(household$general_information.number_of_household
 household$meb.expenditure.nfi[(household$general_information.number_of_household_members == 7 & household$expenditurecapita <= 312.89)] <- "Below.MEB"
 household$meb.expenditure.nfi[(household$general_information.number_of_household_members >= 8 & household$expenditurecapita <= 317.5)] <- "Below.MEB"
 
+## Mergin Nationality ###
+#table(household_member$household.household_member.household_member_details.nationality_default, useNA = "ifany")
+household_member$household.household_member.household_member_details.nationality_default <- as.character(household_member$household.household_member.household_member_details.nationality_default)
+household_member$household.household_member.household_member_details.nationality_default[household_member$household.household_member.household_member_details.nationality_default == "Iraq"] <- "IRQ"
+household_member$household.household_member.household_member_details.nationality_default[household_member$household.household_member.household_member_details.nationality_default == "South Sudan, The Republic of"] <- "SSD"
+household_member$household.household_member.household_member_details.nationality_default[household_member$household.household_member.household_member_details.nationality_default == "Sudan"] <- "SUD"
+household_member$household.household_member.household_member_details.nationality_default[household_member$household.household_member.household_member_details.nationality_default == "Syrian Arab Republic"] <- "SYR"
+household_member$household.household_member.household_member_details.nationality_default[household_member$household.household_member.household_member_details.nationality_default == "Yemen"] <- "YEM"
+table(household_member$household.household_member.household_member_details.nationality_default, useNA = "ifany")
 
+#table(household_member$household.household_member.household_member_more_details.nationality, useNA = "ifany")
+household_member$household.household_member.household_member_more_details.nationality <- as.character(household_member$household.household_member.household_member_more_details.nationality)
+
+
+household_member$household.household_member.household_member_more_details.nationality <- paste( ifelse(is.na(household_member$household.household_member.household_member_details.nationality_default),
+                                             paste(""),household_member$household.household_member.household_member_details.nationality_default),
+                                      ifelse(is.na(household_member$household.household_member.household_member_more_details.nationality),
+                                                   paste(""), household_member$household.household_member.household_member_more_details.nationality),
+                                      sep = "")
+
+#table(household_member$household.household_member.household_member_more_details.nationality, useNA = "ifany")
+
+
+### mergin case ID
+View(household_member[ ,c("household.household_member.household_member_details.case_number_default",
+"household.household_member.household_member_more_details.case_number")])
+
+## Convert o character before pasting together
+household_member$household.household_member.household_member_details.case_number_default <- as.character(household_member$household.household_member.household_member_details.case_number_default)
+household_member$household.household_member.household_member_more_details.case_number <- as.character(household_member$household.household_member.household_member_more_details.case_number)
+
+
+household_member$household.household_member.household_member_more_details.case_number <- paste( ifelse(is.na(household_member$household.household_member.household_member_details.case_number_default),
+                                                                                                       paste(""),household_member$household.household_member.household_member_details.case_number_default),
+                                                                                                ifelse(is.na(household_member$household.household_member.household_member_more_details.case_number),
+                                                                                                       paste(""), household_member$household.household_member.household_member_more_details.case_number),
+                                                                                                sep = "")
+## Verify uniqueness of ID
+nrow(household_member)
+nrow(as.data.frame(unique(household_member$meta_instance_id)))
+nrow(as.data.frame(unique(paste0(household_member$household.household_member.household_member_more_details.case_number,household_member$meta_instance_id))))
 
 
 

@@ -1,3 +1,7 @@
+### This script is to reformat the data dump in the regular ODK/Kobtoolbox export from ODKbriefcase...
+
+
+
 rm(list = ls())
 
 ## Load all required packages         #############################################
