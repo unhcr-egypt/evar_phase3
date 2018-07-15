@@ -473,9 +473,20 @@ write.csv(household,"data/household.csv", row.names = FALSE, na = "")
 write.csv(household_member,"data/household_member.csv", row.names = FALSE, na = "")
 
 ## Compute indicators if defined ##################################################
-source("code/2-create-indicators.R")
+#source("code/2-create-indicators.R")
 
+## Compile total expenditure and income
+household$totalexpenditure <- household$TE1 + household$TE2 + household$TE3 + household$TE4 +
+  household$TE5 + household$TE6 + household$TE7 + household$TE8 + household$TE9 + household$TE10 +
+  household$TE11 + household$TE12 + household$TE13 + household$TE14
+histogram(household$totalexpenditure)
 
+household$totalincome <- household$work_income_1 + household$work_income_2 + household$work_income_3 +
+  household$work_income_4 + household$work_income_5 + household$work_income_6
+
+household$expenditurecapita <- household$totalincome / household$general_information.number_of_household_members
+
+household$incomecapita <- household$totalexpenditure / household$general_information.number_of_household_members
 
 ## Compile MEB ######
 household$incomecapita[is.nan(household$incomecapita)] <- 0
