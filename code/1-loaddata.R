@@ -598,6 +598,7 @@ variablelist <- rbind(dico.household_member , household_member.dico)
 variablelist <- as.character(as.factor(variablelist$varorder))
 household_member <- household_member[ , variablelist ]
 
+rm(household.dico, dico.household, household_member.dico, dico.household_member, variablelist)
 
 ### mergin case ID
 #View(household_member[ ,c("household.household_member.household_member_details.case_number_default",
@@ -646,22 +647,81 @@ checking.record$dup.instance <- "No"
 checking.record$dup.instance[duplicated(checking.record$meta_instance_id  ) == TRUE] <- "Yes"
 table(checking.record$dup.instance )
 
-instance.dup <- as.character(checking.record[checking.record$dup.instance == "Yes", c("meta_instance_id")])
-checking.record2 <- checking.record[ checking.record$meta_instance_id %in% instance.dup, ]
-checking.record3 <- checking.record[ !(checking.record$meta_instance_id %in% instance.dup), ]
 
-total.case <- nrow(checking.record2) + nrow(checking.record3)
+#instance.dup <- as.character(checking.record[checking.record$dup.instance == "Yes", c("meta_instance_id")])
+#checking.record2 <- checking.record[ checking.record$meta_instance_id %in% instance.dup, ]
+#checking.record3 <- checking.record[ !(checking.record$meta_instance_id %in% instance.dup), ]
+#total.case <- nrow(checking.record2) + nrow(checking.record3)
 
 ## So we have both household with one case and household with multiple cases
 ## We need to rebuild all the information at the case level so that every household record correspond to one case
 
 # The rule will be the following:
-## select all individual variable from PA
-## recompute case size
-## dummy variable for categoric variable aggregated per progres case id
-## average value per case id case size for each case
-### If categoric variable from household - then same
-### If numeric variable, average value for household size multiplied by case size
+## 1. Select all individual variable from PA
+## 2. Recompute case size
+## 3. Dummy variable for categoric variable aggregated per progres case id
+## 4. Average value per case id case size for each case
+## 5. If categoric variable from household - then same
+## 6. If numeric variable, average value for household size multiplied by case size
+
+#write.csv( as.data.frame(table(household_member$household.household_member.household_member_details.relation_to_head_of_HH, useNA = "ifany")), "data/hhstatus.csv")
+
+freq.hhstatus <- as.data.frame(table(household_member$household.household_member.household_member_more_details.case_number,
+                                           household_member$household.household_member.household_member_details.relation_to_head_of_HH, useNA = "ifany"))
+
+
+### Need to recode HH Relation status
+household_member$household.household_member.household_member_details.relation_to_head_of_HH <- as.character(household_member$household.household_member.household_member_details.relation_to_head_of_HH)
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "WIF" ] <- "WIFHUS"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "PRF" ] <- "OTH" #"PRMF"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "SBF" ] <- "OTH" #"SBFSBM"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "SBM" ] <- "OTH" #"SBFSBM"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "HUS" ] <- "WIFHUS"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "GCF" ] <- "OTH" #"Gchild"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "NEP" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "PRM" ] <- "OTH" #"PRMF"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "GCM" ] <- "OTH" #"Gchild"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "NR" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "DL" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "SD" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "PLF" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "OR" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "SS" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "NCE" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "BL" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "CLF" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "COF" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "AD" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "ANT" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "GPF" ] <- "OTH"
+household_member$household.household_member.household_member_details.relation_to_head_of_HH[household_member$household.household_member.household_member_details.relation_to_head_of_HH == "PLM" ] <- "OTH"
+
+prop.table(table(household_member$household.household_member.household_member_details.relation_to_head_of_HH, useNA = "ifany"))
+
+casenosurvey <- as.data.frame(table(household_member$household.household_member.household_member_more_details.case_number,
+                                     household_member$household.household_member.household_member_details.relation_to_head_of_HH, useNA = "ifany"))
+casenosurvey  <- dcast(casenosurvey , Var1 ~ Var2,
+                       value.var =   "Freq",
+                       fun.aggregate = sum )
+
+#Rename first column
+names(casenosurvey)[1] <- "CaseNo"
+casenosurvey <- casenosurvey[casenosurvey$CaseNo != "", ]
+casenosurvey$casesizesurvey <- casenosurvey$DAU + casenosurvey$HR1 + casenosurvey$OTH + casenosurvey$SON + casenosurvey$WIFHUS
+
+## source("code/0-format-progres.R")
+
+casenosurvey.merge <- merge( x = casenosurvey , y = ind.pa, by = "CaseNo" )
+names(casenosurvey.merge)
+casenosurvey.merge$checksize <- casenosurvey.merge$CurrentSize - casenosurvey.merge$casesizesurvey
+table(casenosurvey.merge$checksize)
+casenosurvey.merge$checksizeyes <- "no"
+for (i in 1:nrow(casenosurvey.merge)){
+  if (casenosurvey.merge[i, c("checksize")] == 0) {casenosurvey.merge[i, c("checksizeyes")] <- "yes"}
+  else {casenosurvey.merge[i, c("checksizeyes")] <- "no"}
+}
+#casenosurvey.merge[(casenosurvey.merge$checksize == 0) == TRUE, c("checksizeyes")] <- "no"
+table(casenosurvey.merge$checksizeyes)
 
 
 
