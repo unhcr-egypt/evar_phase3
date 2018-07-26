@@ -716,12 +716,27 @@ names(casenosurvey.merge)
 casenosurvey.merge$checksize <- casenosurvey.merge$CurrentSize - casenosurvey.merge$casesizesurvey
 table(casenosurvey.merge$checksize)
 casenosurvey.merge$checksizeyes <- "no"
-for (i in 1:nrow(casenosurvey.merge)){
+for (i in 1:nrow(casenosurvey.merge)) {
   if (casenosurvey.merge[i, c("checksize")] == 0) {casenosurvey.merge[i, c("checksizeyes")] <- "yes"}
   else {casenosurvey.merge[i, c("checksizeyes")] <- "no"}
 }
 #casenosurvey.merge[(casenosurvey.merge$checksize == 0) == TRUE, c("checksizeyes")] <- "no"
-table(casenosurvey.merge$checksizeyes)
+prop.table(table(casenosurvey.merge$checksizeyes))
+
+## Removing those with no match
+casenosurvey.merge <- casenosurvey.merge[ which(casenosurvey.merge$checksizeyes == "yes"), ]
+
+strata1 <- merge( x = as.data.frame(table(ind.pa$strata1, useNA = "ifany")),
+                  y = as.data.frame(table(casenosurvey.merge$strata1, useNA = "ifany")), by = "Var1", all.x = TRUE)
+strata1$pc <- round(strata1$Freq.y / strata1$Freq.x, 4) * 100
+
+strata2 <- merge( x = as.data.frame(table(ind.pa$strata2, useNA = "ifany")),
+                  y = as.data.frame(table(casenosurvey.merge$strata2, useNA = "ifany")), by = "Var1", all.x = TRUE)
+strata2$pc <- round(strata2$Freq.y / strata2$Freq.x, 4) * 100
+
+strata3 <- merge( x = as.data.frame(table(ind.pa$strata3, useNA = "ifany")),
+                  y = as.data.frame(table(casenosurvey.merge$strata3, useNA = "ifany")), by = "Var1", all.x = TRUE)
+strata3$pc <- round(strata3$Freq.y / strata3$Freq.x, 4) * 100
 
 
 

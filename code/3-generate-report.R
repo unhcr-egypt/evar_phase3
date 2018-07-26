@@ -2,6 +2,13 @@
 rm(list = ls())
 ## Load the form
 
+
+# configure multicore
+library(doParallel)
+cl <- makeCluster(detectCores())
+registerDoParallel(cl)
+
+
 mainDir <- getwd()
 ## Load all required packages
 source(paste0(mainDir,"/code/0-config.R"))
@@ -28,15 +35,16 @@ dico <- read.csv(paste("data/dico_",form,".csv",sep = ""), encoding = "UTF-8", n
 ## label Variables
 cat("\n\n Labelling variables \n")
 household <- kobo_label(household , dico)
+household_member <- kobo_label(household_member , dico)
 
 
 ## Get a list of variables to be used for disaggregation #######
 disaggregation <- dico[which(dico$disaggregation %in% c("facet","correlate") & dico$formpart == "questions"),
-                       c("chapter", "name", "label", "type", "qrepeatlabel", "fullname", "disaggregation", "correlate", "listname", "variable") ]
+                       c("chapter", "name", "label", "type", "qrepeatlabel","qrepeat", "fullname", "disaggregation", "correlate", "listname", "variable") ]
 
 ## Get a list of variables to be used for analyisis of association - chisquarred #######
 correlation <- dico[which(dico$type %in% c("select_multiple_d","select_one") & !(is.na(dico$correlate)) & dico$formpart == "questions"),
-                    c("chapter", "name", "label", "type", "qrepeatlabel", "fullname", "disaggregation", "correlate", "listname", "variable") ]
+                    c("chapter", "name", "label", "type", "qrepeatlabel","qrepeat",  "fullname", "disaggregation", "correlate", "listname", "variable") ]
 
 ## Get a list of variables to be used for analyisis of association - chisquarred #######
 ordinal <- dico[which(dico$type %in% c("select_multiple_d","select_one") & dico$variable == "ordinal"),
@@ -108,7 +116,23 @@ for (i in 1:nrow(chapters) )
   cat("mainDir <- getwd()", file = chapter.name , sep = "\n", append = TRUE)
   cat("mainDirroot <- substring(mainDir, 0 , nchar(mainDir) - 5)", file = chapter.name , sep = "\n", append = TRUE)
   cat("## Load all required packages", file = chapter.name , sep = "\n", append = TRUE)
-  cat("source(paste0(mainDirroot,\"/code/0-packages.R\"))", file = chapter.name , sep = "\n", append = TRUE)
+#  cat("source(paste0(mainDirroot,\"/code/0-packages.R\"))", file = chapter.name , sep = "\n", append = TRUE)
+
+
+  cat("library(tidyverse)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("library(ggthemes)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("library(plyr)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("library(ggrepel)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("library(viridis)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("library(RColorBrewer)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("library(extrafont)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("library(corrplot)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("library(reshape2)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("library(scales)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("library(survey)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("library(knitr)", file = chapter.name , sep = "\n", append = TRUE)
+  cat("library(rmarkdown)", file = chapter.name , sep = "\n", append = TRUE)
+
   cat("source(paste0(mainDirroot,\"/code/0-theme.R\"))", file = chapter.name , sep = "\n", append = TRUE)
   cat("library(koboloadeR)", file = chapter.name , sep = "\n", append = TRUE)
   cat("## Provide below the name of the form in xsl form - format should be xls not xlsx", file = chapter.name , sep = "\n", append = TRUE)
@@ -187,7 +211,7 @@ for (i in 1:nrow(chapters) )
   ## Getting chapter questions #######
   #chapterquestions <- dico[which(dico$chapter== chaptersname ), c("chapter", "name", "label", "type", "qrepeatlabel", "fullname","listname") ]
   chapterquestions <- dico[which(dico$chapter == chaptersname & dico$type %in% c("select_one","integer","select_multiple_d", "text","date")),
-                           c("chapter", "name", "label", "type", "qrepeatlabel", "fullname","listname","variable") ]
+                           c("chapter", "name", "label", "type", "qrepeatlabel", "qrepeat", "fullname","listname","variable") ]
   #levels(as.factor(as.character(dico[which(!(is.na(dico$chapter)) & dico$formpart=="questions"), c("type") ])))
   ##Loop.questions####################################################################################################
 
@@ -199,6 +223,7 @@ for (i in 1:nrow(chapters) )
     questions.shortname <- as.character(chapterquestions[ j , c("name")])
     questions.type <- as.character(chapterquestions[ j , c("type")])
     questions.frame <- as.character(chapterquestions[ j , c("qrepeatlabel")])
+    questions.repeat <- as.character(chapterquestions[ j , c("qrepeat")])
     questions.label <- as.character(chapterquestions[ j , c("label")])
     questions.listname <- as.character(chapterquestions[ j , c("listname")])
     questions.ordinal <- as.character(chapterquestions[ j , c("variable")])
@@ -242,9 +267,9 @@ for (i in 1:nrow(chapters) )
 
       #  names(frequ)[2] <- "ccheck"
       #  try <- frequ$ccheck
-    #  } else if (sum(try) == 0) {
-     #   cat(paste0("cat(\"No responses recorded for this question...\")"),file = chapter.name , sep = "\n", append = TRUE)
-    #    cat("No responses recorded for this question...\n")
+      #  } else if (sum(try) == 0) {
+      #   cat(paste0("cat(\"No responses recorded for this question...\")"),file = chapter.name , sep = "\n", append = TRUE)
+      #    cat("No responses recorded for this question...\n")
        }      else{
         cat(paste0("## display table"),file = chapter.name ,sep = "\n", append = TRUE)
         cat(paste0("## Reorder factor"),file = chapter.name ,sep = "\n", append = TRUE)
@@ -263,7 +288,7 @@ for (i in 1:nrow(chapters) )
 
 
         cat(paste0("names(frequ)[1] <- \"", questions.shortname,"\""),file = chapter.name ,sep = "\n", append = TRUE)
-        cat(paste0("kable(frequ, caption=\"__Table__:", questions.label,"\") %>% kable_styling ( position = \"center\")"),file = chapter.name ,sep = "\n", append = TRUE)
+        cat(paste0("kable(frequ, caption=\"__Table__:", questions.label,"\")"),file = chapter.name ,sep = "\n", append = TRUE)
         cat(paste0("## Frequency table with NA in order to get non response rate"),file = chapter.name ,sep = "\n", append = TRUE)
         cat(paste0("frequ1 <- as.data.frame(prop.table(table(", questions.variable,", useNA=\"ifany\")))"),file = chapter.name ,sep = "\n", append = TRUE)
         cat(paste0("frequ1 <- frequ1[!(is.na(frequ1$Var1)), ]"),file = chapter.name ,sep = "\n", append = TRUE)
@@ -337,6 +362,7 @@ for (i in 1:nrow(chapters) )
           disag.shortname <- as.character(disaggregation[ h , c("name")])
           disag.type <- as.character(disaggregation[ h , c("type")])
           disag.frame <- as.character(disaggregation[ h , c("qrepeatlabel")])
+          disag.repeat <- as.character(disaggregation[ h , c("qrepeat")])
           disag.label <- as.character(disaggregation[ h , c("label")])
           disag.listname <- as.character(disaggregation[ h , c("listname")])
           disag.ordinal <- as.character(disaggregation[ h  , c("variable")])
@@ -346,12 +372,15 @@ for (i in 1:nrow(chapters) )
 
 
           if (disag.variable == questions.variable) {
+            ### Case 1: cannot crosstabulate the same variable
             cat(paste0("\n"),file = chapter.name , sep = "\n", append = TRUE)
           } else if (nrow(as.data.frame(table( get(paste0(questions.frame))[[disag.name]]))) == 0) {
+            ### Case 2: Noting to display in crosstabulation
             cat(paste0("\n"),file = chapter.name , sep = "\n", append = TRUE)
           } else {
 
 
+            ## Now looking at type of variables to find out which variable to display
             ## Case #1 - categoric*numeric -> box plot
             if (disag.type == "integer") {
               # Get number levels to set up chart height
@@ -517,6 +546,14 @@ for (i in 1:nrow(chapters) )
       correlationdf <- join(x = correlation1, y = check, by = "fullname", type = "left")
       correlationdf <- correlationdf[!is.na(correlationdf$id), ]
 
+      ## Now need to manage in case we have hierarchic dataframe
+      #if (disag.repeat != questions.repeat) {
+      #  if ( is.na(disag.repeat) & !(is.na(questions.repeat)) ) {
+      #    ## in this case we cross tabulate a nested variable wiht a variable form above
+      #    ## no pb just need to change the frame as we have linked all tables before
+      #    disag.frame <- questions.frame
+      #  } else { }
+
 
       if (nrow(correlationdf) == 0 ) {
         cat("No correlation requested for this question...\n",file = chapter.name , sep = "\n", append = TRUE)
@@ -569,7 +606,7 @@ for (i in 1:nrow(chapters) )
           ## Check that each class is represented
           check.class <- as.data.frame(table(formula$target,formula$tested))
           n.class <- nrow(check.class)
-          n.class.notnull <- nrow(check.class[check.class$Freq>0, ])
+          n.class.notnull <- nrow(check.class[check.class$Freq > 0, ])
 
           ### Testing number of levels for the 2 variables as 'x' and 'y' must have at least 2 levels
           if ( (chiquare.result[1, c("target")] != chiquare.result[1, c("tested")] ) &
@@ -660,7 +697,7 @@ for (i in 1:nrow(chapters) )
         cat(paste0("cat(\"There's too many potential values to display. We will only show the histogram. \n \")"),file = chapter.name ,sep = "\n", append = TRUE)
       } else{
         cat(paste0("## display table"),file = chapter.name ,sep = "\n", append = TRUE)
-        cat(paste0("kable(frequ, caption=\"__Table__:", questions.label,"\") %>% kable_styling ( position = \"center\")"),file = chapter.name ,sep = "\n", append = TRUE)
+        cat(paste0("kable(frequ, caption=\"__Table__:", questions.label,"\")"),file = chapter.name ,sep = "\n", append = TRUE)
       }
 
       ## To do implement FD number of bin: https://www.r-bloggers.com/friday-function-nclass/
@@ -718,7 +755,7 @@ for (i in 1:nrow(chapters) )
 
         cat(paste("### Analysis of relationship" ,sep = ""),file = chapter.name ,sep = "\n", append = TRUE)
         for (h in 1:nrow(disaggregation)) {
-          #h <-1
+          #h <-3
           ## Now getting level for each questions
           disag.name <- as.character(disaggregation[ h , c("fullname")])
           disag.shortname <- as.character(disaggregation[ h , c("name")])
@@ -936,7 +973,7 @@ for (i in 1:nrow(chapters) )
           cat(paste0("names(frequ)[1] <- \"", questions.shortname,"\""),file = chapter.name ,sep = "\n", append = TRUE)
           cat(paste0("frequ[ ,3] <- paste0(round(frequ[ ,3]*100,digits = 1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
 
-          cat(paste0("kable(frequ, caption=\"__Table__:", questions.label,"\") %>% kable_styling ( position = \"center\")"),file = chapter.name ,sep = "\n", append = TRUE)
+          cat(paste0("kable(frequ, caption=\"__Table__:", questions.label,"\")"),file = chapter.name ,sep = "\n", append = TRUE)
 
           cat(paste0("frequ1 <- castdata[castdata$Var1!=\"\", ]"),file = chapter.name ,sep = "\n", append = TRUE)
           cat(paste0("frequ1[ ,4] <- paste0(round(frequ1[ ,3]*100,digits = 1),\"%\")"),file = chapter.name ,sep = "\n", append = TRUE)
@@ -992,7 +1029,7 @@ for (i in 1:nrow(chapters) )
         cat(paste0("textresponse <- as.data.frame(table(",questions.frame,"[!(is.na(",questions.variable,")), c(\"",questions.name,"\")]))"),file = chapter.name ,sep = "\n", append = TRUE)
 
         cat(paste0("names(textresponse)[1] <- \"", questions.shortname,"\""),file = chapter.name ,sep = "\n", append = TRUE)
-        cat(paste0("kable(textresponse, caption=\"__Table__:", questions.label,"\") %>% kable_styling ( position = \"center\")"),file = chapter.name ,sep = "\n", append = TRUE)
+        cat(paste0("kable(textresponse, caption=\"__Table__:", questions.label,"\")"),file = chapter.name ,sep = "\n", append = TRUE)
 
         ## Close chunk
         cat(paste0("\n```\n", sep = '\n'), file = chapter.name, append = TRUE)
@@ -1032,7 +1069,7 @@ chapters <- read.csv(paste(mainDir,"/data/chapters.csv",sep = ""), encoding = "U
 ### Render now all reports
 cat(" Render now reports... \n")
 
-for (i in 2:nrow(chapters)) {
+for (i in 1:nrow(chapters)) {
   chaptersname <- as.character(chapters[ i , 1])
   cat(paste(i, " - Render word output report for ",chaptersname))
   render(paste0("code/",i,"-", chaptersname, "-chapter.Rmd", sep = ""))
