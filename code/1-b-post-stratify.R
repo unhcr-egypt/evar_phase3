@@ -6,8 +6,18 @@
 
 
 library(survey)
+#################################################################
+## First load the universe
+##loading  case profile from progres
+source("data/0-format-progres.R")
 
-source("code/1-loaddata.R")
+universe <- ind.pa
+N <- nrow(universe)
+n <- nrow(data)
+
+rm(progrescase)
+
+source("code/1-a-loaddata.R")
 
 #The survey package provides a survey.design object, which is a container for a dataset and the
 # sampling design information, including sampling scheme, weights, population sizes (and more).
@@ -35,34 +45,25 @@ source("code/1-loaddata.R")
 ###  data: Dataframe containing the raw survey data
 ## data = dat tells svydesign where to find the actual data.
 
-#################################################################
-## First load the universe
-##loading  case profile from progres
-progrescase <- read_csv("data/progrescase-1.csv")
 
-universe <- progrescase[progrescase$CountryAsylum %in% c("ARE", "IRQ", "JOR"), ]
-N <- nrow(universe)
-n <- nrow(data)
-
-rm(progrescase)
 
 ######################################################################
 ## Option 1 - use  weight from the original sampling plan
 ## Abanadonned because of low response rate
 #str(data$Prob)
-data$Prob <- as.numeric(data$Prob)
-data$Stratum2 <- paste(data$Stratum, data$ctr)
-levels(as.factor(data$Stratum2))
+#data$Prob <- as.numeric(data$Prob)
+#data$Stratum2 <- paste(data$Stratum, data$ctr)
+#levels(as.factor(data$Stratum2))
 
 
 ## building the survey object
-survey.data = svydesign(
-  ids = ~ 1,
-  strata = data$Stratum2,
-  weights = data$Prob,
-  fpc = rep(N, n),
-  data = data
-)
+#survey.data = svydesign(
+#  ids = ~ 1,
+#  strata = data$Stratum2,
+#  weights = data$Prob,
+#  fpc = rep(N, n),
+#  data = data
+#)
 #summary(survey.data)
 
 

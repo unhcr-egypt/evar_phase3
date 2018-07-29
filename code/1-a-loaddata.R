@@ -598,7 +598,7 @@ variablelist <- rbind(dico.household_member , household_member.dico)
 variablelist <- as.character(as.factor(variablelist$varorder))
 household_member <- household_member[ , variablelist ]
 
-rm(household.dico, dico.household, household_member.dico, dico.household_member, variablelist)
+rm(household.dico, dico.household, household_member.dico, dico.household_member, variablelist, household.variable, household_member.variable)
 
 ### mergin case ID
 #View(household_member[ ,c("household.household_member.household_member_details.case_number_default",
